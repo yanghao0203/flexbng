@@ -1,0 +1,37 @@
+<?xml version='1.0' encoding='utf-8'?>
+<domain id="234" parentid="101">
+    <user_param>dp</user_param>
+    <mano_url>http://172.17.2.120:8080/mano-nfvo/rest/nsrs/</mano_url>
+    <group_id>2</group_id>
+    <role_id>0</role_id>
+    <seq_id>1</seq_id>
+    <total_resource>
+        <cpu>
+            <total>6</total>
+        </cpu>
+        <memory>
+            <total>16384</total>
+        </memory>
+        <harddisk>40</harddisk>
+        <network_interfaces>
+            <interface>
+                <service_type>internal</service_type>
+                <network_type>E-LAN-L2</network_type>
+                <seq_id>4</seq_id>
+                <mac_address>aa:bb:cc:dd:d1:cc</mac_address>
+                <speed>10000M</speed>
+            </interface>
+            <interface>
+                <service_type>communication</service_type>
+                <network_type>E-LAN-L3</network_type>
+                <seq_id>5</seq_id>
+                <mac_address>aa:bb:cc:dd:d1:bb</mac_address>
+                <speed>10000M</speed>
+                <ip_address>192.168.1.200</ip_address>
+                <network_mask>255.255.255.0</network_mask>
+                <gateway_ip>192.168.1.1</gateway_ip>
+            </interface>
+        </network_interfaces>
+    </total_resource>
+    <global_ip>192.168.1.2</global_ip>
+</domain>

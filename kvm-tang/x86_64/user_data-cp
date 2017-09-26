@@ -1,0 +1,48 @@
+<?xml version="1.0" encoding="utf-8"?>
+<domain id="235" parentid="101">
+    <user_param>cp</user_param>
+    <mano_url>http://172.16.164.250:8080/mano-nfvo/rest/nsrs/</mano_url>
+    <group_id>1</group_id>
+    <role_id>0</role_id>
+    <seq_id>1</seq_id>
+    <total_resource>
+        <cpu>
+            <total>4</total>
+        </cpu>
+        <memory>
+            <total>6144</total>
+        </memory>
+        <harddisk>40</harddisk>
+        <network_interfaces>
+            <interface>
+                <service_type>communication</service_type>
+                <network_type>E-LAN-L3</network_type>
+                <seq_id>0</seq_id>
+                <mac_address>aa:bb:cc:dd:c1:bb</mac_address>
+                <speed>10000M</speed>
+                <ip_address>192.168.1.2</ip_address>
+                <network_mask>255.255.255.0</network_mask>
+                <gateway_ip>192.169.1.1</gateway_ip>
+            </interface>
+            <interface>
+                <service_type>internal</service_type>
+                <network_type>E-LAN-L2</network_type>
+                <seq_id>1</seq_id>
+                <mac_address>aa:bb:cc:dd:c1:cc</mac_address>
+                <speed>10000M</speed>
+            </interface>
+            <interface>
+                <!-- ovs brigde virtual NIC -->
+                <service_type>manage</service_type>
+                <network_type>E-LAN-L3</network_type>
+                <seq_id>2</seq_id>
+                <mac_address>aa:bb:cc:dd:c1:aa</mac_address>
+                <ip_address>192.169.1.101</ip_address>
+                <network_mask>255.255.255.0</network_mask>
+                <gateway_ip>192.169.1.1</gateway_ip>
+                <speed>10000M</speed>
+            </interface>
+        </network_interfaces>
+    </total_resource>
+    <global_ip>192.168.1.2</global_ip>
+</domain>

@@ -1,0 +1,40 @@
+<?xml version='1.0' encoding='utf-8'?>
+<domain id="234" parentid="101">
+    <user_param>all</user_param>
+    <mano_url>http://172.17.2.120:8080/mano-nfvo/rest/nsrs/</mano_url>
+    <group_id>1</group_id>
+    <role_id>0</role_id>
+    <seq_id>1</seq_id>
+    <total_resource>
+        <cpu>
+            <total>4</total>
+        </cpu>
+        <memory>
+            <total>6144</total>
+        </memory>
+        <harddisk>40</harddisk>
+        <network_interfaces>
+            <interface>
+                <!-- ovs brigde virtual NIC -->
+                <service_type>communication</service_type>
+                <network_type>E-LAN-L3</network_type>
+                <seq_id>1</seq_id>
+                <mac_address>00:00:00:00:00:01</mac_address>
+                <ip_address>127.0.0.1</ip_address>
+                <network_mask>255.0.0.0</network_mask>
+                <speed>10000M</speed>
+            <interface>
+                <!-- ovs brigde virtual NIC -->
+                <service_type>manage</service_type>
+                <network_type>E-LAN-L3</network_type>
+                <seq_id>2</seq_id>
+                <mac_address>aa:bb:cc:dd:d1:11</mac_address>
+                <ip_address>192.169.1.101</ip_address>
+                <network_mask>255.255.255.0</network_mask>
+                <gateway_ip>192.169.1.1</gateway_ip>
+                <speed>10000M</speed>
+            </interface>
+        </network_interfaces>
+    </total_resource>
+    <global_ip>192.168.1.2</global_ip>
+</domain>
