@@ -3,7 +3,7 @@
 # File Name: fetch-res.sh
 # Version: V1.0
 # Author: weiyc
-# Organization: certusnet
+# Organization: netElastic
 # Created Time : 2017-03-02 15:10:00
 # Description: Fetch Flexbng resource (from ftp or usb/cdrom devices)
 ##############################################################
@@ -67,6 +67,7 @@ kvm-song/x86_64/flexbng-auto-start
 kvm-song/x86_64/vfio.modules
 kvm-song/x86_64/dpdk_nic_bind.py
 kvm-song/x86_64/flexbng_install.sh
+kvm-song/x86_64/song-B30-debug.all.tar.gz
 )
 
 case "$1" in

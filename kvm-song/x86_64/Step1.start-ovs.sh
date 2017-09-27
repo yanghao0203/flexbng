@@ -65,3 +65,4 @@ mount -t hugetlbfs -o pagesize=1G none /dev/hugepages1G
 #mount -t hugetlbfs -o pagesize=2M none /dev/hugepages2M
 
 systemctl restart libvirtd
+systemctl restart httpd

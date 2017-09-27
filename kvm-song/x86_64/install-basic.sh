@@ -3,7 +3,7 @@
 # File Name: install-flexbng.sh
 # Version: V1.0
 # Author: weiyc
-# Organization: certusnet
+# Organization: netElastic
 # Created Time : 2017-03-02 15:10:00
 # Description: Flexbng initialization
 ##############################################################
@@ -103,15 +103,15 @@ function config_env()
     systemctl enable libvirtd.service
     
     # config issue
-    cat << EOF > /etc/issue
-###########################################
-#      Welcome to the Flexbng server      #
-###########################################
+    cat << EOF > /etc/issue3
+######################################################
+#      Welcome to the netElastic Flexbng server      #
+##############################3#######################
 \S
 Kernel \r on an \m
 
 Default administrator login:    root
-Default administrator password: 123456
+Default administrator password: netElastic
 
 Please change root password on first login.
 

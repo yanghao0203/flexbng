@@ -3,7 +3,7 @@
 # File Name: flexbng_install.sh
 # Version: V1.0
 # Author: yangh
-# Organization: certusnet
+# Organization: netElastic
 # Created Time : 2017-09-14
 # Description:  CP+DP FlexBNG installation
 ##############################################################
@@ -58,12 +58,15 @@ function system_check()
 
 function start_ovs()
 {
+   echo "Start openvswitch and libvirt..."
    mkdir -p $VBRAS_DIR
    mkdir -p $KVM_DIR
    cp -vaf Step*.sh $VBRAS_DIR
    chmod +x $VBRAS_DIR/*.sh
    echo "Start openvswitch"
    $VBRAS_DIR/Step1.start-ovs.sh
+   systemctl enable flexbng.service
+   systemctl enable libvirtd.service
 }
 
 function cpu_info()
@@ -181,6 +184,7 @@ EOF
 
 function cpu_isolate()
 {
+    echo "Begain cpu isolation..."
     numa_node=`cat .numa_node`
     if [ -z $numa_node ];then
        echo "no numa config file exist."
@@ -210,6 +214,7 @@ function cpu_isolate()
 
 function hugepage()
 {
+   echo "Setting bugepage..."
    numa_node=`cat .numa_node`
    if [ -z $numa_node ];then
      echo "no numa config file exist."
@@ -288,6 +293,7 @@ EOF
 
 function bng_create()
 {
+    echo "Create CP and DP vms..."
     cd $DOWNLOAD_DIR
     # kvm image configure
     if [ -e centos7.1-FlexBNG-common-v1.0.qcow2 ];then
@@ -326,6 +332,110 @@ function bng_create()
     fi
 }
 
+function version_install()
+{
+   if [ ! -d /var/www/html/flexbng ];then
+      mkdir /var/www/html/flexbng
+      cp $DOWNLOAD_DIR/song* /var/www/html/flexbng
+       echo "Starting http server..."
+      service httpd restart
+      systemctl enable httpd.service
+   fi
+
+   echo "Check the status of CP and DP vms..."
+   cp_status=`virsh list |grep cp | awk '{print $3}'`
+   dp_status=`virsh list |grep dp | awk  '{print $3}'`
+   if [ -z $cp_status ] && [ -z $dp_status ] ;then
+     echo " CP and DP are not running.Starting... "
+     virsh start cp
+     virsh start dp
+     sleep 15
+     exit
+   elif [ -z $cp_status ] ;then
+     echo "CP is not running.Starting..."
+     virsh start cp
+     sleep 10
+     exit
+   elif [ -z $dp_status ] ;then
+     echo "DP is not running.Starting..."
+     virsh start dp
+     sleep 15
+     exit
+   else
+      echo "CP and DP are all running."
+   fi
+   
+   i=1
+   version_list=()
+   current_version=`curl -s -X GET "http://192.169.1.101:9098/v1/vnf/version" | tr -d '"' | awk -F, '{print $7}' | awk -F: '{print $2}'`
+   echo "Begain install flexbng version..."
+   for temp in `ls /var/www/html/flexbng/`;do 
+      if [ -z $temp ];then
+        echo "These is no version under /var/www/html/flexbng,Please upload version."
+        exit
+      else
+        echo [$i]:$temp
+        version_list[$i]=$temp
+        i=`expr $i + 1`
+      fi
+   done 
+
+   #echo $number
+   while true; do
+      len=${#version_list[@]}
+      if [ $len = 1 ];then
+         update_version=`echo ${version_list[1]} | awk -F. '{print $1}'`
+         break
+      else
+        echo -n "Choose the version:"
+        read number
+        if [ -z $number ] || [ $number -ge $i ] ;then
+          echo "Pls input the correct version number!"
+          continue
+        else
+          update_version=`echo ${version_list[$number]} | awk -F. '{print $1}'`
+          break
+        fi
+      fi
+   done
+
+   FileUrl=http://192.169.1.1/flexbng/$update_version.all.tar.gz
+   md5_value=`md5sum /var/www/html/flexbng/$update_version.all.tar.gz | awk '{print $1}'`
+  
+   while true; do
+      if [ -z $current_version ];then
+        curl http://192.169.1.101:9098/v1/vnf/version -X POST -i -H "Content-Type:application/json" -d '{"FileUrl": "'"$FileUrl"'", "Version": "'"$update_version"'", "Md5": "'"$md5_value"'"}'
+      elif [ $update_version == $current_version ];then
+        echo "The new version is same as the current version.Still installed?[no/yes]:" 
+        read answer
+        if [ $answer = y ] || [ $answer = yes ];then 
+          echo "Stop the flexbng processes"
+          curl -X POST "http://192.169.1.101:9098/v1/vnf/app?action=stop" 
+          sleep 5
+          echo "Install new version"
+          curl http://192.169.1.101:9098/v1/vnf/version -X POST -i -H "Content-Type:application/json" -d '{"FileUrl": "'"$FileUrl"'", "Version": "'"$update_version"'", "Md5": "'"$md5_value"'"}'
+          break
+        elif [ $answer = n ] || [ $answer = no ];then
+          echo "Cancel install."
+          exit
+        else 
+         echo "Please input yes or no."
+         continue
+        fi
+      else 
+       echo "Stop the flexbng processes"
+       curl -X POST "http://192.169.1.101:9098/v1/vnf/app?action=stop"  
+       sleep 5
+       echo "Install new version"
+          curl http://192.169.1.101:9098/v1/vnf/version -X POST -i -H "Content-Type:application/json" -d '{"FileUrl": "'"$FileUrl"'", "Version": "'"$update_version"'", "Md5": "'"$md5_value"'"}'
+       break
+      fi
+   done
+   
+   echo "New version deploying is Done."
+}
+
+
 function show_help()
 {
   cat <<EOF
@@ -338,6 +448,8 @@ Usage:
 
 ./flexbng_install.sh --create            To create and config new flexbng,before execute this step,you need to execute the init step.
 
+./flexbng_install.sh --deploy            To init the envirement,create vms and deploy new version.
+
 ./install_install.sh --help              Show help.
 
 -----------------------------------------------------------
@@ -347,7 +459,6 @@ EOF
 
 if [ -z $action ];then 
     show_help
-    cpu_isolate
 elif [ $action == "--status" ];then
     cpu_info
     mem_info
@@ -363,6 +474,15 @@ elif [ $action == "--init" ];then
     bng_init
 elif [ $action == "--create" ];then
     bng_create
+elif [ $action == "--deploy" ];then
+    start_ovs
+    device_info
+    device_bind
+    cpu_isolate
+    hugepage
+    bng_init
+    bng_create
+    version_install
 elif [ $action == "--help" ];then
     show_help
 else
