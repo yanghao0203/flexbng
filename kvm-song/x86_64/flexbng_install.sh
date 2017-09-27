@@ -445,7 +445,9 @@ Usage:
 
 ./flexbng_install.sh --create            To create and config new flexbng,before execute this step,you need to execute the init step.
 
-./flexbng_install.sh --deploy            To init the envirement,create vms and deploy new version.
+./flexbng_install.sh --deploy            To deploy flexbng version.
+
+./flexbng_install.sh --all               To init the envirement,create vms and deploy new version.
 
 ./install_install.sh --help              Show help.
 
@@ -456,7 +458,6 @@ EOF
 
 if [ -z $action ];then
     show_help
-    version_install
 elif [ $action == "--status" ];then
     cpu_info
     mem_info
@@ -473,6 +474,8 @@ elif [ $action == "--init" ];then
 elif [ $action == "--create" ];then
     bng_create
 elif [ $action == "--deploy" ];then
+    version_install
+elif [ $action == "--all" ];then
     start_ovs
     device_info
     device_bind
