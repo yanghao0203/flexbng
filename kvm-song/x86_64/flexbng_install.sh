@@ -19,7 +19,7 @@ function system_check()
    iommu_status=`grep -i "iommu" /etc/grub2.cfg  | wc -l`
    if [ $iommu_status = 0 ];then
       echo Fail
-   else 
+   else
       echo Success
    fi
 
@@ -27,10 +27,10 @@ function system_check()
    vfio_status=`lsmod | grep vfio_pci | wc -l`
    if [ $vfio_status = 0 ];then
       echo Fail
-   else 
+   else
       echo Success
    fi
-   
+
    echo -n "Check libvirtd service...."
    libvirtd_status=`ps aux|grep libvirt |grep -v grep | wc -l`
    if [ $libvirtd_status = 0 ];then
@@ -38,18 +38,18 @@ function system_check()
    else
       echo Success
    fi
-   
+
    echo -n "Check openvswitch service...."
    ovs_status=`ps aux|grep ovs |grep -v grep | wc -l`
    if [ $ovs_status = 0 ];then
       echo Fail
-   else 
+   else
       echo Success
    fi
 
    if  [[ $iommu_status > 0 ]]&&[[ $vfio_status > 0 ]]&&[[ $libvirtd_status > 0 ]]&&[[ $ovs_status > 0 ]];then
        echo "Success"
-   else 
+   else
        echo "Please check the envirement."
        echo "exit."
        exit 1
@@ -86,10 +86,10 @@ function device_info()
    device_list=`lspci -Dvmmn | awk '/0200/{print a}{a=$0}' | awk -F" " '{print $2}'`
    i=0
    temp=()
-   for device in $device_list 
+   for device in $device_list
        do
            driver=`lspci -vmmks $device | grep Driver | awk -F" " '{print $2}'`
-           if [ $driver == vfio-pci ];then 
+           if [ $driver == vfio-pci ];then
               continue
            fi
            device_mode=`lspci -vmmks $device | grep Device | awk -F: '{print $2}'`
@@ -133,12 +133,12 @@ function device_bind()
    done
    echo -n "Choose the device:"
    read -a id
-   if [ -z $id ]; then 
+   if [ -z $id ]; then
       echo "Please input device id."
       exit
    fi
    for i in "${id[@]}" ; do
-      #echo "i="$i 
+      #echo "i="$i
       for j in "${device_name[@]}" ;do
          temp=($j)
          #echo "test point1"
@@ -161,25 +161,25 @@ function device_bind()
 EOF
             echo ${temp[3]} >> .device_mac
             echo ${temp[4]} > .numa_node
-            
+
          fi
        done
     done
 
    echo -n "slot number is :"
    echo $slot_id
-   
+
    echo "add new driver: $new_driver"
    echo "8086 10fb" > /sys/bus/pci/drivers/$new_driver/new_id
    for dev in $slot_id; do
            full_dev=0000:$dev
            echo "bind $full_dev to $new_driver"
-           echo $full_dev > /sys/bus/pci/devices/$full_dev/driver/unbind 
+           echo $full_dev > /sys/bus/pci/devices/$full_dev/driver/unbind
            echo $full_dev > /sys/bus/pci/drivers/$new_driver/bind
            sleep 1
-           
+
    done
-   
+
 }
 
 function cpu_isolate()
@@ -189,10 +189,10 @@ function cpu_isolate()
     if [ -z $numa_node ];then
        echo "no numa config file exist."
        exit
-    elif [ $numa_node == -1 ];then 
+    elif [ $numa_node == -1 ];then
        numa_node=0
        temp_list=`numactl --hardware | grep "node $numa_node cpus" | awk -F: '{print $2}'`
-    else 
+    else
        temp_list=`numactl --hardware | grep "node $numa_node cpus" | awk -F: '{print $2}'`
     fi
     echo "Current cpu list:"
@@ -219,19 +219,19 @@ function hugepage()
    if [ -z $numa_node ];then
      echo "no numa config file exist."
      exit
-     
+
    elif [ $numa_node = 0 ];then
      #echo "Input hugepage size:"
      #read size
-     #if [ -z $size ];then 
-     #   echo "Please input hugepage size !!"    
+     #if [ -z $size ];then
+     #   echo "Please input hugepage size !!"
      echo 20 > /sys/devices/system/node/node0/hugepages/hugepages-1048576kB/nr_hugepages
      echo 0 > /sys/devices/system/node/node1/hugepages/hugepages-1048576kB/nr_hugepages
      sed -i -e '/reset/a\echo 20 > /sys/devices/system/node/node0/hugepages/hugepages-1048576kB/nr_hugepages\necho 0 > /sys/devices/system/node/node1/hugepages/hugepages-1048576kB/nr_hugepages' $VBRAS_DIR/Step1.start-ovs.sh
      sed -i "s/hugepages=8/hugepages=20/g" /etc/default/grub
      grub2-mkconfig -o /boot/grub2/grub.cfg
 
-     
+
    else
      echo 0 > /sys/devices/system/node/node0/hugepages/hugepages-1048576kB/nr_hugepages
      echo 20 > /sys/devices/system/node/node1/hugepages/hugepages-1048576kB/nr_hugepages
@@ -253,7 +253,7 @@ function bng_init()
    echo ${devicefile[@]}
    for file in ${devicefile[@]}; do
    #  echo $file
-     cat $file >> device_file 
+     cat $file >> device_file
    done
    sed -i 's/^/        /g' device_file
    sed -i '/<serial/i\ temp' dp.xml
@@ -262,7 +262,7 @@ function bng_init()
    sed -i 's/nodeset="0"/nodeset="'$numa_node'"/g' dp.xml
    dos2unix dp.xml
    rm -rf device_file
-   
+
    echo "Add device to dp user_data"
    rm -rf user_data_temp && touch user_data_temp
    i=0
@@ -287,7 +287,7 @@ EOF
       a=`expr $i - 2`
       sed -i "/<seq_id>.*/{x;s/^/./;/^\.\{$i\}$/{x;s/.*/                <seq_id>$a<\/seq_id>/;x};x;}" user_data-dp
     done
-    
+
     rm -rf user_data_temp
 }
 
@@ -350,26 +350,23 @@ function version_install()
      virsh start cp
      virsh start dp
      sleep 15
-     exit
    elif [ -z $cp_status ] ;then
      echo "CP is not running.Starting..."
      virsh start cp
      sleep 10
-     exit
    elif [ -z $dp_status ] ;then
      echo "DP is not running.Starting..."
      virsh start dp
      sleep 15
-     exit
    else
       echo "CP and DP are all running."
    fi
-   
+
    i=1
    version_list=()
    current_version=`curl -s -X GET "http://192.169.1.101:9098/v1/vnf/version" | tr -d '"' | awk -F, '{print $7}' | awk -F: '{print $2}'`
    echo "Begain install flexbng version..."
-   for temp in `ls /var/www/html/flexbng/`;do 
+   for temp in `ls /var/www/html/flexbng/`;do
       if [ -z $temp ];then
         echo "These is no version under /var/www/html/flexbng,Please upload version."
         exit
@@ -378,7 +375,7 @@ function version_install()
         version_list[$i]=$temp
         i=`expr $i + 1`
       fi
-   done 
+   done
 
    #echo $number
    while true; do
@@ -401,16 +398,16 @@ function version_install()
 
    FileUrl=http://192.169.1.1/flexbng/$update_version.all.tar.gz
    md5_value=`md5sum /var/www/html/flexbng/$update_version.all.tar.gz | awk '{print $1}'`
-  
+
    while true; do
       if [ -z $current_version ];then
         curl http://192.169.1.101:9098/v1/vnf/version -X POST -i -H "Content-Type:application/json" -d '{"FileUrl": "'"$FileUrl"'", "Version": "'"$update_version"'", "Md5": "'"$md5_value"'"}'
       elif [ $update_version == $current_version ];then
-        echo "The new version is same as the current version.Still installed?[no/yes]:" 
+        echo "The new version is same as the current version.Still installed?[no/yes]:"
         read answer
-        if [ $answer = y ] || [ $answer = yes ];then 
+        if [ $answer = y ] || [ $answer = yes ];then
           echo "Stop the flexbng processes"
-          curl -X POST "http://192.169.1.101:9098/v1/vnf/app?action=stop" 
+          curl -X POST "http://192.169.1.101:9098/v1/vnf/app?action=stop"
           sleep 5
           echo "Install new version"
           curl http://192.169.1.101:9098/v1/vnf/version -X POST -i -H "Content-Type:application/json" -d '{"FileUrl": "'"$FileUrl"'", "Version": "'"$update_version"'", "Md5": "'"$md5_value"'"}'
@@ -418,20 +415,20 @@ function version_install()
         elif [ $answer = n ] || [ $answer = no ];then
           echo "Cancel install."
           exit
-        else 
+        else
          echo "Please input yes or no."
          continue
         fi
-      else 
+      else
        echo "Stop the flexbng processes"
-       curl -X POST "http://192.169.1.101:9098/v1/vnf/app?action=stop"  
+       curl -X POST "http://192.169.1.101:9098/v1/vnf/app?action=stop"
        sleep 5
        echo "Install new version"
           curl http://192.169.1.101:9098/v1/vnf/version -X POST -i -H "Content-Type:application/json" -d '{"FileUrl": "'"$FileUrl"'", "Version": "'"$update_version"'", "Md5": "'"$md5_value"'"}'
        break
       fi
    done
-   
+
    echo "New version deploying is Done."
 }
 
@@ -457,8 +454,9 @@ EOF
 }
 
 
-if [ -z $action ];then 
+if [ -z $action ];then
     show_help
+    version_install
 elif [ $action == "--status" ];then
     cpu_info
     mem_info
@@ -488,4 +486,3 @@ elif [ $action == "--help" ];then
 else
     show_help
 fi
-
