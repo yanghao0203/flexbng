@@ -15,6 +15,9 @@ KVM_DIR=$VBRAS_DIR/kvm-imgs
 
 function system_check()
 {
+   echo -n "Check CPU model..."
+
+
    echo -n "Check iommu...."
    iommu_status=`grep -i "iommu" /etc/grub2.cfg  | wc -l`
    if [ $iommu_status = 0 ];then
@@ -432,6 +435,23 @@ function version_install()
    echo "New version deploying is Done."
 }
 
+function reboot_system()
+{
+  while true; do
+     echo -n "Need to reboot the server to make CPU isolation effective.Reboot now?[yes/no]"
+     read answer
+     if [ -z $answer ] || [ $answer = y ] || [ $answer = yes ];then
+        shutdown -r now
+        break
+     elif [ $answer = n ] || [ $answer = no ];then
+        echo "Please reboot the server manually later."
+        exit
+     else
+        echo "Please input yes/y or no/n."
+        continue
+     fi
+  done
+}
 
 function show_help()
 {
@@ -484,6 +504,7 @@ elif [ $action == "--all" ];then
     bng_init
     bng_create
     version_install
+    reboot_system
 elif [ $action == "--help" ];then
     show_help
 else
