@@ -406,7 +406,7 @@ function version_install()
       if [ -z $current_version ];then
         curl http://192.169.1.101:9098/v1/vnf/version -X POST -i -H "Content-Type:application/json" -d '{"FileUrl": "'"$FileUrl"'", "Version": "'"$update_version"'", "Md5": "'"$md5_value"'"}'
       elif [ $update_version == $current_version ];then
-        echo "The new version is same as the current version.Still installed?[no/yes]:"
+        echo -n "The new version is same as the current version.Still installed?[no/yes]:"
         read answer
         if [ $answer = y ] || [ $answer = yes ];then
           echo "Stop the flexbng processes"
@@ -423,16 +423,32 @@ function version_install()
          continue
         fi
       else
-       echo "Stop the flexbng processes"
+       echo -n "Stop the flexbng processes..."
        curl -X POST "http://192.169.1.101:9098/v1/vnf/app?action=stop"
        sleep 5
-       echo "Install new version"
-          curl http://192.169.1.101:9098/v1/vnf/version -X POST -i -H "Content-Type:application/json" -d '{"FileUrl": "'"$FileUrl"'", "Version": "'"$update_version"'", "Md5": "'"$md5_value"'"}'
+       echo "Done."
+       echo -n "Install new version..."
+          curl http://192.169.1.101:9098/v1/vnf/version -s -X POST -i -H "Content-Type:application/json" -d '{"FileUrl": "'"$FileUrl"'", "Version": "'"$update_version"'", "Md5": "'"$md5_value"'"}'
        break
       fi
    done
 
-   echo "New version deploying is Done."
+   #version install status check
+   while true; do
+      cp_status=`curl -s -X GET "http://192.169.1.101:9098/v1/vnf/version" | tr -d '"' | awk -F, '{print $14}' | awk -F: '{print $2}'`
+      dp_status=`curl -s -X GET "http://192.169.1.101:9098/v1/vnf/version" | tr -d '"' | awk -F, '{print $29}' | awk -F: '{print $2}'`
+      if [ $cp_status = 807 ] || [ $dp_status = 807 ]; then
+        echo "Version deploying is failed.Please check the vms status."
+        break
+      elif [ $cp_status = 805 ] || [ $dp_status = 805 ]; then
+        sleep 1
+        echo -n "..."
+        continue
+      else
+        echo "Done."
+        break
+      fi
+    done
 }
 
 function reboot_system()
