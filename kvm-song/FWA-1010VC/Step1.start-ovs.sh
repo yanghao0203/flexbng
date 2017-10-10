@@ -4,12 +4,12 @@ mgr_br="br_mgmt"
 comm_br="br_comm"
 intl_br="br_intl"
 
-function kill_process() 
+function kill_process()
 {
     ID=`ps -ef| grep -E "$1"|grep -v 'grep'|awk '{print $2}'`
     for pid in $ID
     do
-        kill -9 $pid   
+        kill -9 $pid
     done
 }
 

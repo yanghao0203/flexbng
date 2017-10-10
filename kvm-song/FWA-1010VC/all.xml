@@ -21,12 +21,11 @@
         Core(s) per socket:    11
         Socket(s):             1
     -->
-    <cpu mode='custom' match='exact'>
-        <model name='SandyBridge'>
-        </model>
+    <!--cpu mode='custom' match='exact'-->
+    <cpu mode='host-model'>
         <topology sockets='1' cores='4' threads='1'/>
     </cpu>
-    
+
     <vcpu placement='static' cpuset='4-7'>4</vcpu>
     <!--vcpu placement='static'>4</vcpu-->
     <!--cputune>
