@@ -62,5 +62,3 @@ iptables -X
 echo "reset hugepages..."
 mkdir /dev/hugepages2M
 mount -t hugetlbfs -o pagesize=2M none /dev/hugepages2M
-
-systemctl restart libvirtd

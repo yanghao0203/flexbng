@@ -11,6 +11,9 @@
         </cpu>
         <memory>
             <total>6144</total>
+            <hugepages-2048kB>
+                <nr_hugepages>150</nr_hugepages>
+            </hugepages-2048kB>
         </memory>
         <harddisk>40</harddisk>
         <network_interfaces>
@@ -23,6 +26,7 @@
                 <ip_address>127.0.0.1</ip_address>
                 <network_mask>255.0.0.0</network_mask>
                 <speed>10000M</speed>
+            </interface>
             <interface>
                 <!-- ovs brigde virtual NIC -->
                 <service_type>manage</service_type>
@@ -36,5 +40,5 @@
             </interface>
         </network_interfaces>
     </total_resource>
-    <global_ip>192.168.1.2</global_ip>
+    <global_ip>127.0.0.1</global_ip>
 </domain>

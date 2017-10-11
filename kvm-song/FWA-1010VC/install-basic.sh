@@ -3,7 +3,7 @@
 # File Name: install-flexbng.sh
 # Version: V1.0
 # Author: weiyc
-# Organization: certusnet
+# Organization: netElastic
 # Created Time : 2017-03-02 15:10:00
 # Description: Flexbng initialization
 ##############################################################
@@ -26,14 +26,14 @@ function build_fm10k()
 {
     echo_stage "Build && Install FM10000 driver"
     cd $DOWNLOAD_DIR
-    
+
     tar zxvf fm10k-0.19.6.tar.gz
     if [ $? -ne 0 ]; then
         echo "Untar fm10k-0.19.6.tar.gz failture!"
         exit 1
     fi
-    
-    cd fm10k-0.19.6/src 
+
+    cd fm10k-0.19.6/src
     make install
     if [ $? -ne 0 ]; then
         echo "Build & Install FM10000 driver failture!"
@@ -69,7 +69,7 @@ function install_ovs()
         exit 1
     fi
 
-    cd openvswitch-2.3.3 
+    cd openvswitch-2.3.3
     ./configure
     make
     make install
@@ -97,21 +97,21 @@ function config_env()
     echo_stage "Config running environment"
     # DNS
     echo "nameserver 8.8.8.8" > /etc/resolv.conf
-    
+
     # enable service
     systemctl enable flexbng.service
     systemctl enable libvirtd.service
-    
+
     # config issue
     cat << EOF > /etc/issue
-###########################################
-#      Welcome to the Flexbng server      #
-###########################################
+######################################################
+#      Welcome to the netElastic Flexbng server      #
+######################################################
 \S
 Kernel \r on an \m
 
 Default administrator login:    root
-Default administrator password: 123456
+Default administrator password: netElastic
 
 Please change root password on first login.
 
@@ -131,4 +131,3 @@ config_env
 
 vfio_onboot
 echo "================================The End==============================="
-
