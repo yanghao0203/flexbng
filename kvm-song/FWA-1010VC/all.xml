@@ -3,9 +3,9 @@
     <uuid>c41d4275-0192-4eca-99df-20d7fef2f6ae</uuid>
     <memory unit='GiB'>6</memory>
     <currentMemory unit='GiB'>6</currentMemory>
-    <memtune>
+    <!--memtune>
         <hard_limit unit='GiB'>7</hard_limit>
-    </memtune>
+    </memtune-->
     <!--memoryBacking>
         <hugepages>
             <page size="2" unit="M" nodeset="0"/>
@@ -23,10 +23,10 @@
     -->
     <!--cpu mode='custom' match='exact'-->
     <cpu mode='host-model'>
-        <topology sockets='1' cores='4' threads='1'/>
+        <topology sockets='1' cores='5' threads='1'/>
     </cpu>
 
-    <vcpu placement='static' cpuset='4-7'>4</vcpu>
+    <vcpu placement='static' cpuset='3-7'>5</vcpu>
     <!--vcpu placement='static'>4</vcpu-->
     <!--cputune>
         <vcpupin vcpu='0' cpuset='1'/>

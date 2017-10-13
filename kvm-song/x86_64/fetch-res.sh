@@ -26,13 +26,13 @@ function ftp_get()
         echo "ftp_get url is null...continue..."
         return
     fi
-    
+
     echo "Ftp download \"$2\" from \"$1\""
     cd $DOWNLOAD_DIR
     wget -nv $1/$2
     if [ $? -ne 0 ]; then
-        echo "Download failture!"; 
-        exit 1; 
+        echo "Download failture!";
+        exit 1;
     fi
 }
 
@@ -42,7 +42,7 @@ function local_get()
         echo "local_get file is null...continue..."
         return
     fi
-    
+
     echo "Local copy \"$2\" from \"$1\""
     test -e $1/$2 && cp $1/$2 $DOWNLOAD_DIR
 }
@@ -52,7 +52,7 @@ echo "================================Begin================================"
 
 
 
-# Download 
+# Download
 FILES=(
 extra-pkts/openvswitch-2.3.3.tar.gz
 extra-pkts/fm10k-0.19.6.tar.gz
@@ -67,7 +67,7 @@ kvm-song/x86_64/flexbng-auto-start
 kvm-song/x86_64/vfio.modules
 kvm-song/x86_64/dpdk_nic_bind.py
 kvm-song/x86_64/flexbng_install.sh
-kvm-song/x86_64/song-B30-debug.all.tar.gz
+kvm-song/x86_64/song-B30P1-debug.all.tar.gz
 )
 
 case "$1" in
@@ -87,4 +87,3 @@ esac
 
 
 echo "================================The End================================"
-

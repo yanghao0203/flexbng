@@ -169,13 +169,14 @@ function device_ovs_bind()
        temp=($j)
        echo [${temp[0]}]: ${temp[1]}
    done
-   echo -n "Choose the device:"
-   read -a id
-   if [ -z $id ]; then
-      echo "Please input device id."
-      exit
-   fi
-
+   #echo -n "Choose the device:"
+   #read -a id
+   id=(0 1 2)
+   #if [ -z $id ]; then
+  #    echo "Please input device id."
+  #    exit
+   #fi
+   echo "deivce will be used:${id[@]}"
    n=1
    for i in "${id[@]}" ; do
       for j in "${device_name[@]}" ;do
@@ -196,8 +197,9 @@ function cpu_isolate()
     echo "Current cpu list:"
     echo $temp_list
 
-    echo  -n  "Choose the cpu you want to isolate:"
-    read temp1_list
+    #echo  -n  "Choose the cpu you want to isolate:"
+    #read temp1_list
+    temp1_list=(3 4 5 6 7)
 
     for i in ${temp1_list[@]};do
        if [ -z $cpu_list ];then
@@ -220,15 +222,15 @@ function capacity_config()
 
 function hugepage()
 {
-     echo 1000 > /sys/devices/system/node/node0/hugepages/hugepages-2048kB/nr_hugepages
-     sed -i -e '/reset/a\echo 1000 > /sys/devices/system/node/node0/hugepages/hugepages-2048kB/nr_hugepages' $VBRAS_DIR/Step1.start-ovs.sh
+     echo 2048 > /sys/devices/system/node/node0/hugepages/hugepages-2048kB/nr_hugepages
+     sed -i -e '/reset/a\echo 2048 > /sys/devices/system/node/node0/hugepages/hugepages-2048kB/nr_hugepages' $VBRAS_DIR/Step1.start-ovs.sh
 }
 
 function bng_ovs_init()
 {
     touch fwd_file
     touch user_data_temp
-    fwdbr_list=`ovs-vsctl show |grep Bridge | grep fwd | awk '{print $2}'`
+    fwdbr_list=`ovs-vsctl show |grep Bridge | grep fwd | awk '{print $2}' | awk -F'"' '{print $2}' | sort`
     echo ${fwdbr_list[@]}
     i=1
     for br in ${fwdbr_list[@]};do
@@ -468,7 +470,7 @@ elif [ $action == "--init" ];then
     device_info
     device_ovs_bind
     cpu_isolate
-    hugepage
+    #hugepage
     bng_ovs_init
 elif [ $action == "--create" ];then
     create_bng
@@ -479,7 +481,7 @@ elif [ $action == "--all" ];then
     device_info
     device_ovs_bind
     cpu_isolate
-    hugepage
+    #hugepage
     bng_ovs_init
     create_bng
     version_install
