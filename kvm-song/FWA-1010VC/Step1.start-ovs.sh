@@ -44,7 +44,7 @@ echo "Start create manage bridge [$mgr_br]"
 ovs-vsctl add-br $mgr_br
 ifconfig $mgr_br 192.169.1.1/24  up
 
-echo "Start create communication bridge [$comm_br]"
+#echo "Start create communication bridge [$comm_br]"
 
 #ovs-vsctl add-br $comm_br
 #ifconfig $comm_br 192.168.100.1/24  up

@@ -171,20 +171,33 @@ function device_ovs_bind()
    done
    #echo -n "Choose the device:"
    #read -a id
-   id=(0 1 2)
+   id=(0 1 2 3)
    #if [ -z $id ]; then
   #    echo "Please input device id."
   #    exit
    #fi
    echo "deivce will be used:${id[@]}"
    n=1
+   echo "#Set up forwarding bridges and interfaces" >> Step1.start-ovs.sh
    for i in "${id[@]}" ; do
       for j in "${device_name[@]}" ;do
          temp=($j)
-         if [ "$i" == "${temp[0]}" ] ; then
-            ovs-vsctl add-br br-fwd$n
-            ovs-vsctl add-port br-fwd$n ${temp[1]}
-            n=`expr $n + 1`
+         if [ $n = 4 ] ; then
+             ovs-vsctl add-port br_mgmt ${temp[1]}
+             ifconfig ${temp[1]} up
+             echo "ifconfig ${temp[1]} up" >> Step1.start-ovs.sh
+         else
+             if [ "$i" == "${temp[0]}" ] ; then
+                ovs-vsctl add-br br-fwd$n
+                ovs-vsctl add-port br-fwd$n ${temp[1]}
+                ifconfig br-fwd$n up
+                ifconfig ${temp[1]} up
+                echo "ifconfig br-fwd$n up" >> Step1.start-ovs.sh
+                echo "ifconfig ${temp[1]} up" >> Step1.start-ovs.sh
+                n=`expr $n + 1`
+             else
+                continue
+             fi
          fi
       done
    done
@@ -194,13 +207,16 @@ function cpu_isolate()
 {
     numa_node=0
     temp_list=`numactl --hardware | grep "node $numa_node cpus" | awk -F: '{print $2}'`
-    echo "Current cpu list:"
-    echo $temp_list
-
+    cpu_number=`numactl --hardware | grep "node $numa_node cpus" | awk -F: '{print $2}' | tr " " "\n" | grep -v "^$" | wc -l`
+    echo "Current cpu list:$temp_list"
+    if [ $cpu_number = 4 ];then
+      temp1_list=(2 3)
+    else
+      temp1_list=(3 4 5 6 7)
+    fi
+    vcpu_number=${#temp1_list[@]}
     #echo  -n  "Choose the cpu you want to isolate:"
     #read temp1_list
-    temp1_list=(3 4 5 6 7)
-
     for i in ${temp1_list[@]};do
        if [ -z $cpu_list ];then
           cpu_list=$i
@@ -208,11 +224,17 @@ function cpu_isolate()
           cpu_list=$cpu_list","$i
        fi
      done
-    echo "cpu list will be isolated:"
-    echo $cpu_list
+    echo "cpu list will be isolated:$cpu_list"
+
     sed -i "s/115200n8/& isolcpus=$cpu_list/g" /etc/default/grub
     grub2-mkconfig -o /boot/grub2/grub.cfg
 
+    #add the vcpu list and number to all.xml
+    sed -i "/cores/s/5/$vcpu_number/g" all.xml
+    sed -i "/vcpu\>/s/5/$vcpu_number/g" all.xml
+    #add the vcpu number to user_data-all and all.xml
+    sed -i /placement/s/cpuset\=\'.*\'/cpuset\=\'"$cpu_list"\'/g all.xml
+    sed -i "/\<cpu\>/{n;s/5/$vcpu_number/g}" user_data-all
 }
 
 function capacity_config()
@@ -458,7 +480,6 @@ Usage:
 -----------------------------------------------------------
 EOF
 }
-
 
 if [ -z $action ];then
     show_help
