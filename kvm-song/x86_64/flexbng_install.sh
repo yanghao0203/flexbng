@@ -99,6 +99,8 @@ function device_info()
            ifname=`ls /sys/bus/pci/drivers/$driver/$device/net`
            mac=`cat /sys/bus/pci/drivers/$driver/$device/net/*/address`
            numa_node=`cat /sys/bus/pci/drivers/$driver/$device/numa_node`
+           vendor=`cat /sys/bus/pci/drivers/$driver/$device/vendor | awk -Fx '{print $2}'`
+           device_id=`cat /sys/bus/pci/drivers/$driver/$device/device | awk -Fx '{print $2}'`
            if [ -z $action ];then
               action=default
            elif [ $action == "--status" ];then
@@ -107,13 +109,17 @@ function device_info()
                echo "ifname:    "$ifname
                echo "mac:       "$mac
                echo "NUMA node: "$numa_node
-               echo "Device:   "$device_mode
+               echo "Device:    "$device_mode
+               echo "Vendor:    "$vendor
+               echo "Device_id: "$device_id
            fi
            temp[0]=$i
            temp[1]=$ifname
            temp[2]=$device
            temp[3]=$mac
            temp[4]=$numa_node
+           temp[5]=$vendor
+           temp[6]=$device_id
            device_name[$i]=${temp[@]}
            i=`expr $i + 1`
        done
@@ -129,10 +135,11 @@ function device_bind()
    new_driver="vfio-pci"
    rm -rf .device_mac && touch .device_mac
    rm -rf .numa_node && touch .numa_node
-   echo "id   ifname   slot  numa_node"
+   rm -rf .vendor && touch .vendor
+   echo "id   ifname   slot  numa_node   vendor:device_id"
    for j in "${device_name[@]}" ; do
        temp=($j)
-       echo [${temp[0]}]: ${temp[1]}"   "${temp[2]}"   " ${temp[4]}
+       echo [${temp[0]}]: ${temp[1]}"   "${temp[2]}"   "${temp[4]}"    "${temp[5]}:${temp[6]}
    done
    echo -n "Choose the device:"
    read -a id
@@ -155,6 +162,7 @@ function device_bind()
              slot=`echo $temp1 | awk -F: '{print $2}' | awk -F. '{print $1}' `
              function=`echo $temp1 | awk -F: '{print $2}' | awk -F. '{print $2}' `
              touch ${temp[1]}_device.xml
+             rm -rf /etc/sysconfig/network-scripts/ifcfg-${temp[1]}
              cat > ${temp[1]}_device.xml <<EOF
 <hostdev mode='subsystem' type='pci' managed='yes'>
       <source>
@@ -164,6 +172,7 @@ function device_bind()
 EOF
             echo ${temp[3]} >> .device_mac
             echo ${temp[4]} > .numa_node
+            echo "${temp[5]}:${temp[6]}" >> .vendor
 
          fi
        done
@@ -173,7 +182,11 @@ EOF
    echo $slot_id
 
    echo "add new driver: $new_driver"
-   echo "8086 10fb" > /sys/bus/pci/drivers/$new_driver/new_id
+   vendor_list=`cat .vendor | sort -u`
+   for vendor_temp in $vendor_list; do
+       vendor_temp=${vendor_temp//:/ }
+       echo $vendor_temp > /sys/bus/pci/drivers/$new_driver/new_id
+   done
    for dev in $slot_id; do
            full_dev=0000:$dev
            echo "bind $full_dev to $new_driver"
@@ -437,10 +450,10 @@ function version_install()
    while true; do
       cp_status=`curl -s -X GET "http://192.169.1.101:9098/v1/vnf/version" | tr -d '"' | awk -F, '{print $14}' | awk -F: '{print $2}'`
       dp_status=`curl -s -X GET "http://192.169.1.101:9098/v1/vnf/version" | tr -d '"' | awk -F, '{print $29}' | awk -F: '{print $2}'`
-      if [ $cp_status = 807 ] || [ $dp_status = 807 ]; then
+      if [ "$cp_status" = "807" ] || [ "$dp_status" = "807" ]; then
         echo "Version deploying is failed.Please check the vms status."
         break
-      elif [ $cp_status = 805 ] || [ $dp_status = 805 ]; then
+      elif [ "$cp_status" = "805" ] || [ "$dp_status" = "805" ]; then
         sleep 1
         echo -n "..."
         continue

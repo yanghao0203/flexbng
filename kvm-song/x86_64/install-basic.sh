@@ -26,14 +26,14 @@ function build_fm10k()
 {
     echo_stage "Build && Install FM10000 driver"
     cd $DOWNLOAD_DIR
-    
+
     tar zxvf fm10k-0.19.6.tar.gz
     if [ $? -ne 0 ]; then
         echo "Untar fm10k-0.19.6.tar.gz failture!"
         exit 1
     fi
-    
-    cd fm10k-0.19.6/src 
+
+    cd fm10k-0.19.6/src
     make install
     if [ $? -ne 0 ]; then
         echo "Build & Install FM10000 driver failture!"
@@ -69,7 +69,7 @@ function install_ovs()
         exit 1
     fi
 
-    cd openvswitch-2.3.3 
+    cd openvswitch-2.3.3
     ./configure
     make
     make install
@@ -97,11 +97,12 @@ function config_env()
     echo_stage "Config running environment"
     # DNS
     echo "nameserver 8.8.8.8" > /etc/resolv.conf
-    
+
     # enable service
     systemctl enable flexbng.service
     systemctl enable libvirtd.service
-    
+    systemctl disable NetworkManager.service
+
     # config issue
     cat << EOF > /etc/issue3
 ######################################################
@@ -131,4 +132,3 @@ config_env
 
 vfio_onboot
 echo "================================The End==============================="
-
