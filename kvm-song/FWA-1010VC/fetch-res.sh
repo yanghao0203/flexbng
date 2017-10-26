@@ -65,7 +65,7 @@ kvm-song/FWA-1010VC/flexbng-auto-start
 kvm-song/FWA-1010VC/dpdk_nic_bind.py
 kvm-song/FWA-1010VC/flexbng_install.sh
 kvm-song/FWA-1010VC/flexbng.service
-KVM-song/FWA-1010VC/song-atm-B33P2-debug.all.tar.gz
+kvm-song/FWA-1010VC/song-atm-B33P2-debug.all.tar.gz
 )
 
 case "$1" in
