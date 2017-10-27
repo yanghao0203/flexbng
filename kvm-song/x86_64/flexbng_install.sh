@@ -188,12 +188,13 @@ EOF
        echo $vendor_temp > /sys/bus/pci/drivers/$new_driver/new_id
    done
    for dev in $slot_id; do
-           full_dev=0000:$dev
-           echo "bind $full_dev to $new_driver"
-           echo $full_dev > /sys/bus/pci/devices/$full_dev/driver/unbind
-           echo $full_dev > /sys/bus/pci/drivers/$new_driver/bind
-           sleep 1
-
+           echo "bind $dev to $new_driver"
+           $DOWNLOAD_DIR/dpdk_nic_bind.py -b $new_driver $dev
+           #full_dev=0000:$dev
+           #echo "bind $full_dev to $new_driver"
+           #echo $full_dev > /sys/bus/pci/devices/$full_dev/driver/unbind
+           #echo $full_dev > /sys/bus/pci/drivers/$new_driver/bind
+           #sleep 1
    done
 
 }
@@ -416,8 +417,9 @@ function version_install()
    md5_value=`md5sum /var/www/html/flexbng/$update_version.all.tar.gz | awk '{print $1}'`
 
    while true; do
-      if [ -z $current_version ];then
+      if [ $current_version = nil ];then
         curl http://192.169.1.101:9098/v1/vnf/version -X POST -i -H "Content-Type:application/json" -d '{"FileUrl": "'"$FileUrl"'", "Version": "'"$update_version"'", "Md5": "'"$md5_value"'"}'
+        sleep 5
       elif [ $update_version == $current_version ];then
         echo -n "The new version is same as the current version.Still installed?[no/yes]:"
         read answer
@@ -427,6 +429,7 @@ function version_install()
           sleep 5
           echo "Install new version"
           curl http://192.169.1.101:9098/v1/vnf/version -X POST -i -H "Content-Type:application/json" -d '{"FileUrl": "'"$FileUrl"'", "Version": "'"$update_version"'", "Md5": "'"$md5_value"'"}'
+          sleep 5
           break
         elif [ $answer = n ] || [ $answer = no ];then
           echo "Cancel install."
@@ -441,7 +444,8 @@ function version_install()
        sleep 5
        echo "Done."
        echo -n "Install new version..."
-          curl http://192.169.1.101:9098/v1/vnf/version -s -X POST -i -H "Content-Type:application/json" -d '{"FileUrl": "'"$FileUrl"'", "Version": "'"$update_version"'", "Md5": "'"$md5_value"'"}'
+       curl http://192.169.1.101:9098/v1/vnf/version -s -X POST -i -H "Content-Type:application/json" -d '{"FileUrl": "'"$FileUrl"'", "Version": "'"$update_version"'", "Md5": "'"$md5_value"'"}'
+       sleep 5
        break
       fi
    done
@@ -450,6 +454,8 @@ function version_install()
    while true; do
       cp_status=`curl -s -X GET "http://192.169.1.101:9098/v1/vnf/version" | tr -d '"' | awk -F, '{print $14}' | awk -F: '{print $2}'`
       dp_status=`curl -s -X GET "http://192.169.1.101:9098/v1/vnf/version" | tr -d '"' | awk -F, '{print $29}' | awk -F: '{print $2}'`
+      cp_current_version=`curl -s -X GET "http://192.169.1.101:9098/v1/vnf/version" | tr -d '"' | awk -F, '{print $7}' | awk -F: '{print $2}'`
+      dp_current_version=`curl -s -X GET "http://192.169.1.101:9098/v1/vnf/version" | tr -d '"' | awk -F, '{print $22}' | awk -F: '{print $2}'`
       if [ "$cp_status" = "807" ] || [ "$dp_status" = "807" ]; then
         echo "Version deploying is failed.Please check the vms status."
         break
@@ -457,9 +463,11 @@ function version_install()
         sleep 1
         echo -n "..."
         continue
-      else
+      elif [ "$cp_status" = "800" ] && [ "$dp_status" = "800" ] && [ "$update_version" == "$cp_current_version" ] && [ "$update_version" == "$dp_current_version" ];then
         echo "Done."
         break
+      else
+        echo "Version installation is timeout.Please check the network."
       fi
     done
 }
@@ -470,6 +478,22 @@ function reboot_system()
      echo -n "Need to reboot the server to make CPU isolation effective.Reboot now?[yes/no]"
      read answer
      if [ -z $answer ] || [ $answer = y ] || [ $answer = yes ];then
+         echo -n "Shutdown CP and DP vms.."
+         virsh shutdown cp
+         virsh shutdown dp
+         while true; do
+           vm_status=`virsh list | grep running | wc -l`
+           if [ "$vm_status" = "0" ];then
+             echo -n "Done."
+             echo ""
+             echo "Reboot the system.."
+             break
+           else
+             sleep 1
+             echo -n "..."
+            continue
+           fi
+        done
         shutdown -r now
         break
      elif [ $answer = n ] || [ $answer = no ];then
