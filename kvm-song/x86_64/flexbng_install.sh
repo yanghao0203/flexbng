@@ -512,7 +512,7 @@ function show_help()
 Usage:
 ------------------------------------------------------------
 
-./flexbng_install.sh --status            To display current cpu,mem,nic status.
+./flexbng_install.sh --status            To display current cpu,mem,nic infomations.
 
 ./flexbng_install.sh --init              To bind nic to vfi-pci driver,cpu isolate,modify vm xml file and user_data file.
 
