@@ -38,7 +38,7 @@ elif [ $action == "-c" ];then
     echo "The old SN number of this Edge is $sn"
     sn=$(cat /proc/sys/kernel/random/uuid | sed 's/-//g' |head -c 16 | tr '[a-z]' '[A-Z]')
     echo "The new SN number of this Edge is $sn"
-    sed -i "s/parentid=\".*\"/parentuuid=\"$sn\"/" /userdatas/openstack/latest/user_data
+    sed -i "s/parentuuid=\".*\"/parentuuid=\"$sn\"/" /userdatas/openstack/latest/user_data
   else
    echo "Please input the correct parameter."
   fi
